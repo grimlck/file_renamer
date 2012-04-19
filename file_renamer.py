@@ -7,58 +7,63 @@ import sys
 section_delimiter="-"
 word_delimiter=" "
 new_word_delimiter="_"
-extension = None
+#extension = None
+replacement=[
+             ["'",""],
+             [" ","_"],
+             [".",""],
+             ["ß","ss"],
+             ["[","("],
+             ["]",")"]
+             ]
 
-def split_file_name(file_name):
-    global extension
-    second_split=[]
-    pure_file_name = os.path.splitext(file_name)[0]
-    extension = os.path.splitext(file_name)[-1]
-    first_split = pure_file_name.split(section_delimiter)
-    if len(first_split[0]) == 1:
-        first_split[0]="0"+first_split[0]
-    if len(first_split) > 1:
-        for item in first_split:
-            second_split.append(item.strip().lower().split(word_delimiter))
-    
-    return second_split
-
-def join_file_name(split_list):
-    first_join = []
-    new_file_name=""
-    
-    try:
-        if len(split_list) > 1:
-            for item in split_list:
-                first_join.append(new_word_delimiter.join(item))
-                
-        if len(first_join) > 1:
-            new_file_name = section_delimiter.join(first_join)+extension
-        else:
-            new_file_name = first_join[0]+extension
+def replace_chars(string,replacement_list):
+    if string and replacement_list:
+        for item in replacement_list:
+            string = string.replace(item[0],item[1])
             
-        return new_file_name
-    except IndexError:
-        return new_file_name
-    #return first_join
+    return string
+
+def rename_files(directory):
+    if os.path.exists(directory) and os.path.isdir(directory):
+        os.chdir(directory)
+        cwd = os.getcwd()
+        for file in os.listdir(cwd):
+            if os.path.isfile(file):
+                extension = os.path.splitext(file)[-1]
+                file_name = os.path.splitext(file)[0]
+                splitted_file_name = file_name.split("-")
+                if len(splitted_file_name[0]) == 1:
+                    splitted_file_name[0] = "0"+splitted_file_name[0]
+                    
+                file_name = "-".join(item.strip() for item in splitted_file_name)
+                    
+                
+                file_name = replace_chars(file_name,replacement)
+                file_name = file_name+extension
+                file_name = file_name.lower()
+                if file_name != file:
+                    if not os.path.exists(file_name):
+                        os.renames(file,file_name)
+                    else:
+                        print file_name+" already exists"
+        
+        return 0
+    else:
+        return 1
+    
+
+
             
 def main():    
     if len(sys.argv) > 1:
         directory = os.path.abspath(sys.argv[1])
-        if os.path.exists(directory) and os.path.isdir(directory):
-            os.chdir(directory)
-            cwd = os.getcwd()
-            for file in os.listdir(cwd):
-                if os.path.isfile(file):
-                    if split_file_name(file):
-                        joined = join_file_name(split_file_name(file))
-                        if joined != file:
-                            if not os.path.exists(joined):
-                                os.renames(file, joined)
-                            else:
-                                print joined+" already exists!"
-                        else:
-                            print file+" already sane!"
+        rename_files(directory)
+ 
+        sys.exit(0)
+    else:
+        print "No directory specified."
+        sys.exit(1)
             
 
 if __name__ == "__main__":
