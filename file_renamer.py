@@ -9,12 +9,15 @@ word_delimiter=" "
 new_word_delimiter="_"
 #extension = None
 replacement=[
-             ["'",""],
+             ["'","_"],
              [" ","_"],
              [".",""],
              ["ß","ss"],
              ["[","("],
-             ["]",")"]
+	     [",",""],
+             ["]",")"],
+	     ["!",""],
+	     ["?",""]
              ]
 
 def replace_chars(string,replacement_list):
